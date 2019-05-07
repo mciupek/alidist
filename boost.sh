@@ -42,6 +42,7 @@ EOF
     ln -nfs "$(which python3)" fake_bin/python
     ln -nfs "$(which pip3)" fake_bin/pip
     export PATH="$PWD/fake_bin:$PATH"
+    BOOST_CXXFLAGS="$(fake_bin/python-config --includes)"
   fi
 fi
 
