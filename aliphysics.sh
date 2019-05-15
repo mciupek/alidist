@@ -5,6 +5,7 @@ requires:
   - AliRoot
   - RooUnfold
   - treelite
+  - Qn
 build_requires:
   - "Xcode:(osx.*)"
 source: https://github.com/alisw/AliPhysics
@@ -78,7 +79,7 @@ proc ModulesHelp { } {
 set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
 module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
 # Dependencies
-module load BASE/1.0 AliRoot/$ALIROOT_VERSION-$ALIROOT_REVISION ${ROOUNFOLD_VERSION:+RooUnfold/$ROOUNFOLD_VERSION-$ROOUNFOLD_REVISION}
+module load BASE/1.0 AliRoot/$ALIROOT_VERSION-$ALIROOT_REVISION ${ROOUNFOLD_VERSION:+RooUnfold/$ROOUNFOLD_VERSION-$ROOUNFOLD_REVISION} ${QN_VERSION:+Qn/$QN_VERSION-$QN_REVISION}
 # Our environment
 setenv ALIPHYSICS_VERSION \$version
 setenv ALIPHYSICS_RELEASE \$::env(ALIPHYSICS_VERSION)
