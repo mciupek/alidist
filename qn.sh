@@ -10,6 +10,7 @@ build_requires:
 prepend_path:
   ROOT_INCLUDE_PATH: "$QN_ROOT/include"
 incremental_recipe: |
+  cmake $SOURCEDIR -DCMAKE_INSTALL_PREFIX=$INSTALLROOT
   cmake --build . -- ${JOBS:+-j$JOBS} install
   mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles
 ---
@@ -32,8 +33,8 @@ module load BASE/1.0 ${ROOT_VERSION:+ROOT/$ROOT_VERSION-$ROOT_REVISION}
 # Our environment
 setenv QN_RELEASE \$version
 setenv QN_ROOT \$::env(BASEDIR)/$PKGNAME/\$::env(QN_RELEASE)
-prepend-path LD_LIBRARY_PATH \$::env(Qn_ROOT)/lib
-prepend-path ROOT_INCLUDE_PATH \$::env(Qn_ROOT)/include
+prepend-path LD_LIBRARY_PATH \$::env(QN_ROOT)/lib
+prepend-path ROOT_INCLUDE_PATH \$::env(QN_ROOT)/include
 $([[ ${ARCHITECTURE:0:3} == osx ]] && echo "prepend-path DYLD_LIBRARY_PATH \$::env(Qn_DIR)/lib")
 EoF
 mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles
