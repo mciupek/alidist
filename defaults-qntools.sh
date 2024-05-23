@@ -9,11 +9,6 @@ env:
   GEANT4_BUILD_MULTITHREADED: 'OFF'
   MACOSX_DEPLOYMENT_TARGET: '10.15'
 disable:
-  - DPMJET
-  - GEANT3
-  - GEANT4
-  - GEANT4_VMC
-  - arrow
   - mesos
   - MySQL
 overrides:
