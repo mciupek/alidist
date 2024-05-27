@@ -1,7 +1,7 @@
 package: QnTools
 version: "%(commit_hash)s"
 tag: master
-source: https://github.com/HeavyIonAnalysis/QnTools
+source: https://github.com/mciupek/QnTools
 requires:
   - ROOT
 build_requires:
