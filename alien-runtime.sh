@@ -1,17 +1,16 @@
 package: AliEn-Runtime
 version: "v2-19-le"
 requires:
-  - "GCC-Toolchain:(?!osx)"
-  - "Xcode:(osx.*)"
+ - "GCC-Toolchain:(?!osx)"
+ - "Xcode:(osx.*)"
 build_requires:
-  - zlib
-  - libxml2
-  - "OpenSSL:(?!osx)"
-  - "osx-system-openssl:(osx.*)"
-  - AliEn-CAs
-  - ApMon-CPP
-  - UUID
-  - alibuild-recipe-tools
+ - zlib
+ - libxml2
+ - "OpenSSL:(?!osx)"
+ - "osx-system-openssl:(osx.*)"
+ - AliEn-CAs
+ - ApMon-CPP
+ - UUID
 env:
   X509_CERT_DIR: "$ALIEN_RUNTIME_ROOT/globus/share/certificates"
 ---
@@ -26,12 +25,23 @@ for RPKG in $BUILD_REQUIRES; do
   rm -f $INSTALLROOT/etc/modulefiles/{$RPKG,$RPKG.unrelocated} || true
 done
 
-rm -f $INSTALLROOT/lib/pkgconfig/zlib.pc
-
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"
+MODULEFILE="$MODULEDIR/$PKGNAME"
 mkdir -p "$MODULEDIR"
-alibuild-generate-module --bin --lib > "$MODULEDIR/$PKGNAME"
-cat >> "$MODULEDIR/$PKGNAME" <<\EoF
-setenv X509_CERT_DIR $PKG_ROOT/globus/share/certificates
+cat > "$MODULEFILE" <<EoF
+#%Module1.0
+proc ModulesHelp { } {
+  global version
+  puts stderr "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+}
+set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
+module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+# Dependencies
+module load BASE/1.0 ${GCC_TOOLCHAIN_ROOT:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION}
+# Our environment
+set ALIEN_RUNTIME_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
+prepend-path LD_LIBRARY_PATH \$ALIEN_RUNTIME_ROOT/lib
+prepend-path PATH \$ALIEN_RUNTIME_ROOT/bin
+setenv X509_CERT_DIR \$ALIEN_RUNTIME_ROOT/globus/share/certificates
 EoF

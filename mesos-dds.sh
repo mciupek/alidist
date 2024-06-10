@@ -1,16 +1,16 @@
 package: mesos-dds
 version: master
-tag: master
 source: https://github.com/alisw/mesos-dds
 requires:
-  - mesos
-  - protobuf
-  - boost
-  - glog
-  - cpprestsdk
-  - DDS
+- mesos
+- protobuf
+- boost
+- glog
+- cpprestsdk
+- DDS
 build_requires:
-  - CMake
+- CMake
+tag: master
 ---
 #!/bin/sh
 

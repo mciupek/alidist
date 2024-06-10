@@ -1,6 +1,6 @@
 package: AliRoot-coverage
 version: "%(year)s%(month)s%(day)s"
-force_rebuild: true
+force_rebuild: 1
 requires:
   - lcov
   - AliRoot-test

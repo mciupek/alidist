@@ -1,6 +1,6 @@
 package: pythia
 version: "%(tag_basename)s"
-tag: v8311
+tag: v8243
 source: https://github.com/alisw/pythia8
 requires:
   - lhapdf
@@ -56,5 +56,4 @@ setenv PYTHIA8DATA \$PYTHIA_ROOT/share/Pythia8/xmldoc
 setenv PYTHIA8 \$::env(BASEDIR)/$PKGNAME/\$version
 prepend-path PATH \$PYTHIA_ROOT/bin
 prepend-path LD_LIBRARY_PATH \$PYTHIA_ROOT/lib
-prepend-path ROOT_INCLUDE_PATH \$PYTHIA_ROOT/include
 EoF

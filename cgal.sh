@@ -24,7 +24,6 @@ cd CGAL-*
 if [[ "$BOOST_ROOT" != '' ]]; then
   export LDFLAGS="-L$BOOST_ROOT/lib"
   export LD_LIBRARY_PATH="$BOOST_ROOT/lib:$LD_LIBRARY_PATH"
-  export DYLD_LIBRARY_PATH="$BOOST_ROOT/lib:$LD_LIBRARY_PATH"
 fi
 
 export MPFR_LIB_DIR="${MPFR_ROOT}/lib"
@@ -34,8 +33,7 @@ export GMP_INC_DIR="${GMP_ROOT}/include"
 
 cmake . \
       -DCMAKE_INSTALL_PREFIX:PATH="${INSTALLROOT}" \
-      -DCMAKE_INSTALL_LIBDIR:PATH="lib" \
-      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_SKIP_RPATH:BOOL=YES \
       -DWITH_BLAS:BOOL=OFF \
       -DWITH_CGAL_Core:BOOL=ON \
       -DWITH_CGAL_ImageIO:BOOL=ON \
@@ -69,10 +67,6 @@ cmake . \
 
 make VERBOSE=1 ${JOBS:+-j$JOBS}
 make install VERBOSE=1
-
-find $INSTALLROOT/lib/ -name "*.dylib" -exec install_name_tool -add_rpath @loader_path/../lib {} \;
-find $INSTALLROOT/lib/ -name "*.dylib" -exec install_name_tool -add_rpath ${INSTALLROOT}/lib {} \;
-find $INSTALLROOT/lib/ -name "*.dylib" -exec install_name_tool -id {} {} \;
 
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"

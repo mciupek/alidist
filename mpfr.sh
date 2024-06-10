@@ -3,9 +3,8 @@ version: v3.1.3
 tag: v3.1.3
 source: https://github.com/alisw/MPFR.git
 build_requires:
-  - "autotools:(slc6|slc7)"
+  - autotools
   - GMP
-  - alibuild-recipe-tools
 ---
 #!/bin/sh
 rsync -a --delete --exclude '**/.git' $SOURCEDIR/ ./
@@ -27,9 +26,16 @@ rm -f $INSTALLROOT/lib/*.la
 MODULEDIR="$INSTALLROOT/etc/modulefiles"
 MODULEFILE="$MODULEDIR/$PKGNAME"
 mkdir -p "$MODULEDIR"
-alibuild-generate-module > "$MODULEFILE"
-cat >> "$MODULEFILE" <<EoF
-
+cat > "$MODULEFILE" <<EoF
+#%Module1.0
+proc ModulesHelp { } {
+  global version
+  puts stderr "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+}
+set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
+module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+# Dependencies
+module load BASE/1.0
 # Our environment
 set MPFR_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
 setenv MPFR_ROOT \$MPFR_ROOT

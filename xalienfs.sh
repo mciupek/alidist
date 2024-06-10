@@ -3,17 +3,17 @@ version: "%(tag_basename)s"
 tag: v1.0.14r1-alice3
 source: https://github.com/alisw/xalienfs.git
 requires:
-  - XRootD
-  - "OpenSSL:(?!osx)"
-  - "osx-system-openssl:(osx.*)"
-  - AliEn-Runtime
+ - XRootD
+ - "OpenSSL:(?!osx)"
+ - "osx-system-openssl:(osx.*)"
+ - AliEn-Runtime
 build_requires:
-  - "autotools:(slc6|slc7)"
-  - SWIG
-  - UUID
-  - libperl
+ - autotools
+ - SWIG
+ - UUID
+ - libperl
 prepend_path:
-  PERLLIB: "$ALIEN_RUNTIME_ROOT/lib/perl"
+ PERLLIB: "$ALIEN_RUNTIME_ROOT/lib/perl"
 env:
   GSHELL_ROOT: "$XALIENFS_ROOT"
   GSHELL_NO_GCC: "1"
@@ -26,16 +26,9 @@ rsync -a --delete --exclude='**/.git' --delete-excluded \
 ./bootstrap.sh
 autoreconf -ivf
 case $ARCHITECTURE in
-  osx_x86-64)
-    [[ "$OPENSSL_ROOT" != "" ]] || OPENSSL_ROOT=`brew --prefix openssl@3`
+  osx*)
+    [[ "$OPENSSL_ROOT" != "" ]] || OPENSSL_ROOT=`brew --prefix openssl`
     EXTRA_PERL_CXXFLAGS="-I$(perl -MConfig -e 'print $Config{archlib}')/CORE"
-  ;;
-  osx_arm64)
-    [[ "$OPENSSL_ROOT" != "" ]] || OPENSSL_ROOT=`brew --prefix openssl@3`
-    EXTRA_PERL_CXXFLAGS="-I$(perl -MConfig -e 'print $Config{archlib}')/CORE"
-    export LDFLAGS="-L$(brew --prefix readline)/lib"
-    export CPPFLAGS="-I$(brew --prefix readline)/include"
-    export PKG_CONFIG_PATH="$(brew --prefix readline)/lib/pkgconfig"
   ;;
 esac
 export CXXFLAGS="$CXXFLAGS -I$XROOTD_ROOT/include -I$XROOTD_ROOT/include/xrootd/private \

@@ -1,17 +1,16 @@
 package: AliPhysics
 version: "%(commit_hash)s"
-tag: master
+tag: v2zdc
 requires:
   - AliRoot
   - RooUnfold
   - treelite
   - KFParticle
-  - boost:(osx.*)
-  - ZeroMQ:(osx.*)
-  - "jemalloc:(?!osx.*)"
+  - QnTools
+  - fmt
 build_requires:
   - "Xcode:(osx.*)"
-source: https://github.com/alisw/AliPhysics
+source: https://github.com/mciupek/AliPhysics
 env:
   ALICE_PHYSICS: "$ALIPHYSICS_ROOT"
 prepend_path:
@@ -39,26 +38,7 @@ if [[ $CMAKE_BUILD_TYPE == COVERAGE ]]; then
   source $ALIROOT_ROOT/etc/gcov-setup.sh
 fi
 
-# Use ninja if in devel mode, ninja is found and DISABLE_NINJA is not 1
-if [[ ! $CMAKE_GENERATOR && $DISABLE_NINJA != 1 && $DEVEL_SOURCES != $SOURCEDIR ]]; then
-  NINJA_BIN=ninja-build
-  type "$NINJA_BIN" &> /dev/null || NINJA_BIN=ninja
-  type "$NINJA_BIN" &> /dev/null || NINJA_BIN=
-  # AliPhysics contains Fortran code, which requires at least ninja v1.10
-  # in order to build with ninja, otherwise the build must fall back to make
-  NINJA_VERSION_MAJOR=0
-  NINJA_VERSION_MINOR=0
-  if [ "x$NINJA_BIN" != "x" ]; then
-    NINJA_VERSION_MAJOR=$($NINJA_BIN --version | sed -e 's/.* //' | cut -d. -f1)
-    NINJA_VERSION_MINOR=$($NINJA_BIN --version | sed -e 's/.* //' | cut -d. -f2)
-  fi
-  NINJA_VERSION=$(($NINJA_VERSION_MAJOR * 100 + $NINJA_VERSION_MINOR))
-  [[ $NINJA_BIN && $NINJA_VERSION -ge 110 ]] && CMAKE_GENERATOR=Ninja || true
-  unset NINJA_BIN
-fi
-
 cmake "$SOURCEDIR"                                                 \
-      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-Wno-error -g"             \
       -DCMAKE_INSTALL_PREFIX="$INSTALLROOT"                        \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON                           \
       -DROOTSYS="$ROOT_ROOT"                                       \
@@ -71,8 +51,6 @@ cmake "$SOURCEDIR"                                                 \
       ${MPFR_ROOT:+-DMPFR="$MPFR_ROOT"}                            \
       ${GMP_ROOT:+-DGMP="$GMP_ROOT"}                               \
       ${TREELITE_ROOT:+-DTREELITE_ROOT="$TREELITE_ROOT"}           \
-      ${ZEROMQ_ROOT:+-DZEROMQ="$ZEROMQ_ROOT"}                      \
-      ${BOOST_ROOT:+-DBOOST_ROOT="$BOOST_ROOT"}                    \
       -DALIROOT="$ALIROOT_ROOT"
 
 cmake --build . -- ${IGNORE_ERRORS:+-k} ${JOBS+-j $JOBS} install
@@ -103,7 +81,7 @@ proc ModulesHelp { } {
 set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
 module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
 # Dependencies
-module load BASE/1.0 AliRoot/$ALIROOT_VERSION-$ALIROOT_REVISION ${ROOUNFOLD_REVISION:+RooUnfold/$ROOUNFOLD_VERSION-$ROOUNFOLD_REVISION} ${TREELITE_REVISION:+treelite/$TREELITE_VERSION-$TREELITE_REVISION} ${KFPARTICLE_REVISION:+KFParticle/$KFPARTICLE_VERSION-$KFPARTICLE_REVISION} ${JEMALLOC_REVISION:+jemalloc/$JEMALLOC_VERSION-$JEMALLOC_REVISION}
+module load BASE/1.0 AliRoot/$ALIROOT_VERSION-$ALIROOT_REVISION ${ROOUNFOLD_REVISION:+RooUnfold/$ROOUNFOLD_VERSION-$ROOUNFOLD_REVISION} ${TREELITE_REVISION:+treelite/$TREELITE_VERSION-$TREELITE_REVISION} ${KFPARTICLE_REVISION:+KFParticle/$KFPARTICLE_VERSION-$KFPARTICLE_REVISION} ${QNTOOLS_VERSION:+QnTools/$QNTOOLS_VERSION-$QNTOOLS_REVISION} ${FMT_VERSION:+fmt/$FMT_VERSION-$FMT_REVISION} 
 # Our environment
 setenv ALIPHYSICS_VERSION \$version
 setenv ALIPHYSICS_RELEASE \$::env(ALIPHYSICS_VERSION)

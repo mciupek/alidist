@@ -1,10 +1,11 @@
 package: O2
-version: "%(tag_basename)s"
-tag: "daily-20240516-0200"
+version: "v1.2.0"
+tag: "v1.2.0"
 requires:
   - arrow
   - FairRoot
   - Vc
+  - hijing
   - HepMC3
   - libInfoLogger
   - Common-O2
@@ -14,28 +15,16 @@ requires:
   - FairMQ
   - curl
   - MCStepLogger
+  - AEGIS
   - fmt
-  - "openmp:(?!osx.*)"
   - DebugGUI
   - JAliEn-ROOT
   - fastjet
   - libuv
-  - libjalienO2
-  - cgal
-  - VecGeom
-  - FFTW3
-  - ONNXRuntime
-  - MLModels
-  - KFParticle
-  - RapidJSON
 build_requires:
-  - abseil
-  - GMP
-  - MPFR
+  - RapidJSON
   - googlebenchmark
-  - O2-customization
-  - Clang:(?!osx*)
-  - ITSResponse
+  - cub
 source: https://github.com/AliceO2Group/AliceO2
 env:
   VMCWORKDIR: "$O2_ROOT/share"
@@ -82,22 +71,15 @@ incremental_recipe: |
     if [[ ! $BOOST_VERSION && $ARCHITECTURE == osx* ]]; then
       export ROOT_INCLUDE_PATH=$(brew --prefix boost)/include:$ROOT_INCLUDE_PATH
     fi
-    if [[ -z $OPENSSL_REVISION && $ARCHITECTURE == osx* ]]; then
-      export ROOT_INCLUDE_PATH=$(brew --prefix openssl@3)/include:$ROOT_INCLUDE_PATH
-    fi
     export ROOT_INCLUDE_PATH=$INSTALLROOT/include:$INSTALLROOT/include/GPU:$ROOT_INCLUDE_PATH
-    # Set Geant4 data sets environment
-    if [[ "$G4INSTALL" != "" ]]; then
-      `$G4INSTALL/bin/geant4-config --datasets | sed 's/[^ ]* //' | sed 's/G4/export G4/' | sed 's/DATA /DATA=/'`
-    fi
     # Clean up old coverage data and tests logs
     find . -name "*.gcov" -o -name "*.gcda" -delete
     # cleanup ROOT files created by tests in build area
     find $PWD -name "*.root" -delete
     rm -rf test_logs
     TESTERR=
-    ctest -C ${CMAKE_BUILD_TYPE} -E "test_Framework" --output-on-failure ${JOBS+-j $JOBS} || TESTERR=$?
-    ctest -C ${CMAKE_BUILD_TYPE} -R test_Framework --output-on-failure || TESTERR=$?
+    ctest -E "(test_Framework)|(test_GPUsort(CUDA|HIP))" --output-on-failure ${JOBS+-j $JOBS} || TESTERR=$?
+    ctest -R test_Framework --output-on-failure || TESTERR=$?
     # Display additional logs for tests that timed out in a non-fatal way
     set +x
     for LOG in test_logs/*.nonfatal; do
@@ -127,11 +109,9 @@ incremental_recipe: |
 valid_defaults:
   - o2
   - o2-dataflow
-  - o2-epn
   - o2-dev-fairroot
   - alo
   - o2-prod
-  - ali
 ---
 #!/bin/sh
 export ROOTSYS=$ROOT_ROOT
@@ -152,7 +132,9 @@ case $ARCHITECTURE in
     [[ ! $PROTOBUF_ROOT ]] && PROTOBUF_ROOT=`brew --prefix protobuf`
     [[ ! $GLFW_ROOT ]] && GLFW_ROOT=`brew --prefix glfw`
     [[ ! $FMT_ROOT ]] && FMT_ROOT=`brew --prefix fmt`
+    SONAME=dylib
   ;;
+  *) SONAME=so ;;
 esac
 
 # This affects only PR checkers
@@ -183,29 +165,13 @@ cmake $SOURCEDIR -DCMAKE_INSTALL_PREFIX=$INSTALLROOT                            
       ${DPL_TESTS_BATCH_MODE:+-DDPL_TESTS_BATCH_MODE=${DPL_TESTS_BATCH_MODE}}                             \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON                                                                  \
       ${CXXSTD:+-DCMAKE_CXX_STANDARD=$CXXSTD}                                                             \
-      ${LIBJALIENO2_ROOT:+-DlibjalienO2_ROOT=$LIBJALIENO2_ROOT}                                           \
-      ${XROOTD_REVISION:+-DXROOTD_DIR=$XROOTD_ROOT}                                                       \
-      ${JALIEN_ROOT_REVISION:+-DJALIEN_ROOT_ROOT=$JALIEN_ROOT_ROOT}                                       \
       ${ALIBUILD_O2_FORCE_GPU:+-DENABLE_CUDA=ON -DENABLE_HIP=ON -DENABLE_OPENCL1=ON -DENABLE_OPENCL2=ON}  \
-      ${ALIBUILD_O2_FORCE_GPU:+-DOCL2_GPUTARGET=gfx906 -DHIP_AMDGPUTARGET="gfx906;gfx908"}                \
-      ${ALIBUILD_O2_FORCE_GPU:+-DCUDA_COMPUTETARGET=86}                                                   \
-      ${DISABLE_GPU:+-DENABLE_CUDA=OFF -DENABLE_HIP=OFF -DENABLE_OPENCL=OFF -DENABLE_OPENCL2=OFF}         \
-      ${ALIBUILD_ENABLE_CUDA:+-DENABLE_CUDA=ON}                                                           \
-      ${ALIBUILD_ENABLE_HIP:+-DENABLE_HIP=ON}                                                             \
-      ${ALIBUILD_O2_OVERRIDE_HIP_ARCHS:+-DHIP_AMDGPUTARGET=${ALIBUILD_O2_OVERRIDE_HIP_ARCHS}}             \
-      ${ALIBUILD_O2_OVERRIDE_CUDA_ARCHS:+-DCUDA_COMPUTETARGET=${ALIBUILD_O2_OVERRIDE_CUDA_ARCHS}}         \
+      ${ALIBUILD_O2_FORCE_GPU:+-DOCL2_GPUTARGET=gfx906 -DHIP_AMDGPUTARGET=gfx906 -DCUDA_COMPUTETARGET=75} \
       ${CURL_ROOT:+-DCURL_ROOT=$CURL_ROOT}                                                                \
-      ${LIBUV_ROOT:+-DLibUV_ROOT=$LIBUV_ROOT}                                                             \
-      ${BUILD_ANALYSIS:+-DBUILD_ANALYSIS=$BUILD_ANALYSIS}                                                 \
-      ${BUILD_EXAMPLES:+-DBUILD_EXAMPLES=$BUILD_EXAMPLES}                                                 \
-      ${BUILD_TEST_ROOT_MACROS:+-BUILD_TEST_ROOT_MACROS=$BUILD_TEST_ROOT_MACROS}                          \
-      ${ENABLE_UPGRADES:+-DENABLE_UPGRADES=$ENABLE_UPGRADES}                                              \
-      ${ARROW_ROOT:+-DGandiva_DIR=$ARROW_ROOT/lib/cmake/Gandiva}                                          \
-      ${ARROW_ROOT:+-DArrow_DIR=$ARROW_ROOT/lib/cmake/Arrow}                                              \
-      ${CLANG_REVISION:+-DCLANG_EXECUTABLE="$CLANG_ROOT/bin-safe/clang"}                                  \
-      ${CLANG_REVISION:+-DLLVM_LINK_EXECUTABLE="$CLANG_ROOT/bin/llvm-link"}                               \
-      ${ITSRESPONSE_ROOT:+-DITSRESPONSE=${ITSRESPONSE_ROOT}}
-# LLVM_ROOT is required for Gandiva
+      ${LIBUV_ROOT:+-DLibUV_INCLUDE_DIR=$LIBUV_ROOT/include}                                              \
+      ${LIBUV_ROOT:+-DLibUV_LIBRARY=$LIBUV_ROOT/lib/libuv.$SONAME}                                        \
+      ${ENABLE_UPGRADES:+-DENABLE_UPGRADES=ON}                                                            \
+      ${ARROW_ROOT:+-Dgandiva_DIR=$ARROW_ROOT/lib/cmake/arrow}
 
 cmake --build . -- ${JOBS+-j $JOBS} install
 
@@ -248,19 +214,9 @@ module load BASE/1.0 \\
             ${ARROW_REVISION:+arrow/$ARROW_VERSION-$ARROW_REVISION}                                 \\
             ${DEBUGGUI_REVISION:+DebugGUI/$DEBUGGUI_VERSION-$DEBUGGUI_REVISION}                     \\
             ${LIBUV_REVISION:+libuv/$LIBUV_VERSION-$LIBUV_REVISION}                                 \\
-            ${JALIEN_ROOT_REVISION:+JAliEn-ROOT/$JALIEN_ROOT_VERSION-$JALIEN_ROOT_REVISION}         \\
             ${FASTJET_REVISION:+fastjet/$FASTJET_VERSION-$FASTJET_REVISION}                         \\
-            ${CGAL_REVISION:+cgal/$CGAL_VERSION-$CGAL_REVISION}                                     \\
             ${GLFW_REVISION:+GLFW/$GLFW_VERSION-$GLFW_REVISION}                                     \\
-            ${FMT_REVISION:+fmt/$FMT_VERSION-$FMT_REVISION}                                         \\
-            ${AEGIS_REVISION:+AEGIS/$AEGIS_VERSION-$AEGIS_REVISION}                                 \\
-            ${LIBJALIENO2_REVISION:+libjalienO2/$LIBJALIENO2_VERSION-$LIBJALIENO2_REVISION}         \\
-            ${CURL_REVISION:+curl/$CURL_VERSION-$CURL_REVISION}                                     \\
-            ${FAIRMQ_REVISION:+FairMQ/$FAIRMQ_VERSION-$FAIRMQ_REVISION}                             \\
-            ${FFTW3_REVISION:+FFTW3/$FFTW3_VERSION-$FFTW3_REVISION}                                 \\
-            ${ONNXRUNTIME_REVISION:+ONNXRuntime/$ONNXRUNTIME_VERSION-$ONNXRUNTIME_REVISION}         \\
-            ${RAPIDJSON_REVISION:+RapidJSON/$RAPIDJSON_VERSION-$RAPIDJSON_REVISION}                 \\
-            ${MLMODELS_REVISION:+MLModels/$MLMODELS_VERSION-$MLMODELS_REVISION}
+            ${AEGIS_REVISION:+AEGIS/$AEGIS_VERSION-$AEGIS_REVISION}
 # Our environment
 set O2_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
 setenv O2_ROOT \$O2_ROOT
@@ -283,9 +239,6 @@ if [[ $ALIBUILD_O2_TESTS ]]; then
   if [[ ! $BOOST_VERSION && $ARCHITECTURE == osx* ]]; then
     export ROOT_INCLUDE_PATH=$(brew --prefix boost)/include:$ROOT_INCLUDE_PATH
   fi
-  if [[ -z $OPENSSL_REVISION && $ARCHITECTURE == osx* ]]; then
-    export ROOT_INCLUDE_PATH=$(brew --prefix openssl@3)/include:$ROOT_INCLUDE_PATH
-  fi
   export ROOT_INCLUDE_PATH=$INSTALLROOT/include:$INSTALLROOT/include/GPU:$ROOT_INCLUDE_PATH
   # Clean up old coverage data and tests logs
   find . -name "*.gcov" -o -name "*.gcda" -delete
@@ -293,8 +246,8 @@ if [[ $ALIBUILD_O2_TESTS ]]; then
   # Clean up ROOT files created by tests in build area
   find $PWD -name "*.root" -delete
   TESTERR=
-  ctest -C ${CMAKE_BUILD_TYPE} -E "(test_Framework)|(test_GPUsort(CUDA|HIP))" --output-on-failure ${JOBS+-j $JOBS} || TESTERR=$?
-  ctest -C ${CMAKE_BUILD_TYPE} -R test_Framework --output-on-failure || TESTERR=$?
+  ctest -E "(test_Framework)|(test_GPUsort(CUDA|HIP))" --output-on-failure ${JOBS+-j $JOBS} || TESTERR=$?
+  ctest -R test_Framework --output-on-failure || TESTERR=$?
   # Display additional logs for tests that timed out in a non-fatal way
   set +x
   for LOG in test_logs/*.nonfatal; do

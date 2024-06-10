@@ -1,10 +1,10 @@
 package: googletest
-version: "1.8.0"
-tag: release-1.8.0
+version: "main"
 source: https://github.com/google/googletest
+tag: release-1.8.0
 build_requires:
-  - "GCC-Toolchain:(?!osx)"
-  - CMake
+ - "GCC-Toolchain:(?!osx)"
+ - CMake
 ---
 #!/bin/sh
 cmake $SOURCEDIR                           \

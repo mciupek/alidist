@@ -4,14 +4,14 @@ tag: v1.6.3
 source: https://github.com/alisw/autotools
 prefer_system: "(?!slc5|slc6)"
 prefer_system_check: |
-  export PATH=$PATH:$(brew --prefix gettext || true)/bin:$(brew --prefix texinfo || true)/bin;
+  export PATH=$PATH:$(brew --prefix gettext || true)/bin;
   which autoconf && which m4 && which automake && which makeinfo && which aclocal && which pkg-config && which autopoint && which libtool;
   if [ $? -ne 0 ]; then printf "One or more autotools packages are missing on your system.\n * On a RHEL-compatible system you probably need: autoconf automake texinfo gettext gettext-devel libtool\n * On an Ubuntu-like system you probably need: autoconf automake autopoint texinfo gettext libtool libtool-bin pkg-config\n * On macOS you need: brew install autoconf automake gettext pkg-config"; exit 1; fi
 prepend_path:
   PKG_CONFIG_PATH: $(pkg-config --debug 2>&1 | grep 'Scanning directory' | sed -e "s/.*'\(.*\)'/\1/" | xargs echo | sed -e 's/ /:/g')
 build_requires:
-  - termcap
-  - make
+ - termcap
+ - make
 ---
 #!/bin/bash -e
 
@@ -38,22 +38,17 @@ export PATH=$INSTALLROOT/bin:$PATH
 export LD_LIBRARY_PATH=$INSTALLROOT/lib:$LD_LIBRARY_PATH
 
 # help2man
-if pushd help2man*; then
-  ./configure --disable-dependency-tracking --prefix $INSTALLROOT
-  make ${JOBS+-j $JOBS}
-  make install
-  hash -r
+if [ -d help2man* ]; then
+  pushd help2man*
+    ./configure --disable-dependency-tracking --prefix $INSTALLROOT
+    make ${JOBS+-j $JOBS}
+    make install
+    hash -r
   popd
 fi
 
 # m4 -- requires: nothing special
 pushd m4*
-  # texinfo uses utf-8 by default, but doc/m4.text is still iso-8859-1.
-  # MacOS sed only understands the command with the linebreaks like this.
-  sed -i.bak '1i\
-@documentencoding ISO-8859-1
-' doc/m4.texi
-  rm -f doc/m4.texi.bak
   $USE_AUTORECONF && autoreconf -ivf
   ./configure --disable-dependency-tracking --prefix $INSTALLROOT
   make ${JOBS+-j $JOBS}

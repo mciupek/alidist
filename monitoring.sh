@@ -1,14 +1,12 @@
 package: Monitoring
 version: "%(tag_basename)s"
-tag: v3.18.1
+tag: v3.0.6
 requires:
   - boost
   - "GCC-Toolchain:(?!osx)"
-  - curl
-  - libInfoLogger
+  - ApMon-CPP
 build_requires:
   - CMake
-  - alibuild-recipe-tools
 source: https://github.com/AliceO2Group/Monitoring
 incremental_recipe: |
   make ${JOBS:+-j$JOBS} install
@@ -27,6 +25,7 @@ fi
 cmake $SOURCEDIR                                              \
       -DCMAKE_INSTALL_PREFIX=$INSTALLROOT                     \
       ${BOOST_REVISION:+-DBOOST_ROOT=$BOOST_ROOT}                 \
+      ${APMON_CPP_REVISION:+-DAPMON_ROOT=$APMON_CPP_ROOT}         \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 
 
 cp ${BUILDDIR}/compile_commands.json ${INSTALLROOT}
@@ -34,16 +33,29 @@ cp ${BUILDDIR}/compile_commands.json ${INSTALLROOT}
 make ${JOBS+-j $JOBS} install
 
 if [[ $ALIBUILD_O2_TESTS ]]; then
-  ctest --output-on-failure
+  make test
 fi
-
 
 #ModuleFile
 mkdir -p etc/modulefiles
-alibuild-generate-module --bin --lib > etc/modulefiles/$PKGNAME
-cat >> etc/modulefiles/$PKGNAME <<EoF
+cat > etc/modulefiles/$PKGNAME <<EoF
+#%Module1.0
+proc ModulesHelp { } {
+  global version
+  puts stderr "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+}
+set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
+module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+# Dependencies
+module load BASE/1.0                                                                                \\
+            ${BOOST_REVISION:+boost/$BOOST_VERSION-$BOOST_REVISION}                                 \\
+            ${APMON_CPP_REVISION:+ApMon-CPP/$APMON_CPP_VERSION-$APMON_CPP_REVISION}                 \\
+            ${GCC_TOOLCHAIN_REVISION:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION}
+
 # Our environment
 set MONITORING_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
-prepend-path ROOT_INCLUDE_PATH \$PKG_ROOT/include
+setenv MONITORING_ROOT \$MONITORING_ROOT
+prepend-path PATH \$MONITORING_ROOT/bin
+prepend-path LD_LIBRARY_PATH \$MONITORING_ROOT/lib
 EoF
 mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles

@@ -9,7 +9,6 @@ requires:
   - GEANT4_VMC
   - Vc
   - JAliEn-ROOT
-  - ZeroMQ:(osx.*)
 build_requires:
   - CMake
   - "Xcode:(osx.*)"
@@ -50,32 +49,7 @@ EOF
 source $INSTALLROOT/etc/gcov-setup.sh
 fi
 
-FVERSION=`gfortran --version | grep -i fortran | sed -e 's/.* //' | cut -d. -f1`
-SPECIALFFLAGS=""
-if [ $FVERSION -ge 10 ]; then
-   echo "Fortran version $FVERSION"
-   SPECIALFFLAGS=1
-fi
-# Use ninja if in devel mode, ninja is found and DISABLE_NINJA is not 1
-if [[ ! $CMAKE_GENERATOR && $DISABLE_NINJA != 1 && $DEVEL_SOURCES != $SOURCEDIR ]]; then
-  NINJA_BIN=ninja-build
-  type "$NINJA_BIN" &> /dev/null || NINJA_BIN=ninja
-  type "$NINJA_BIN" &> /dev/null || NINJA_BIN=
-  # AliRoot contains Fortran code, which requires at least ninja v1.10
-  # in order to build with ninja, otherwise the build must fall back to make
-  NINJA_VERSION_MAJOR=0
-  NINJA_VERSION_MINOR=0
-  if [ "x$NINJA_BIN" != "x" ]; then
-    NINJA_VERSION_MAJOR=$($NINJA_BIN --version | sed -e 's/.* //' | cut -d. -f1)
-    NINJA_VERSION_MINOR=$($NINJA_BIN --version | sed -e 's/.* //' | cut -d. -f2)
-  fi
-  NINJA_VERSION=$(($NINJA_VERSION_MAJOR * 100 + $NINJA_VERSION_MINOR))
-  [[ $NINJA_BIN && $NINJA_VERSION -ge 110 ]] && CMAKE_GENERATOR=Ninja || true
-  unset NINJA_BIN
-fi
-
 cmake $SOURCEDIR                                                     \
-      -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-Wno-error -g"               \
       -DCMAKE_INSTALL_PREFIX="$INSTALLROOT"                          \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON                             \
       -DCMAKE_Fortran_COMPILER=gfortran                              \
@@ -95,8 +69,7 @@ cmake $SOURCEDIR                                                     \
       ${ALICE_DAQ:+-DDIMDIR=$DAQ_DIM -DODIR=linux}                   \
       ${ALICE_SHUTTLE:+-DDIMDIR=$HOME/dim -DODIR=linux}              \
       ${ALICE_SHUTTLE:+-DSHUTTLE=ON -DApMon=$ALIEN_RUNTIME_ROOT}     \
-      -DOCDB_INSTALL=PLACEHOLDER                                     \
-      ${SPECIALFFLAGS:+-DCMAKE_Fortran_FLAGS="-fallow-argument-mismatch"}
+      -DOCDB_INSTALL=PLACEHOLDER
 
 cmake --build . -- ${IGNORE_ERRORS:+-k} ${JOBS+-j $JOBS} install
 # ctest will succeed if no load_library tests were found
@@ -134,7 +107,6 @@ module load BASE/1.0                                                            
             ${DPMJET_REVISION:+DPMJET/$DPMJET_VERSION-$DPMJET_REVISION}                                             \\
             ${FASTJET_REVISION:+fastjet/$FASTJET_VERSION-$FASTJET_REVISION}                                         \\
             ${GEANT3_REVISION:+GEANT3/$GEANT3_VERSION-$GEANT3_REVISION}                                             \\
-            ${ZEROMQ_REVISION:+ZeroMQ/$ZEROMQ_VERSION-$ZEROMQ_REVISION}                                             \\
             ${GEANT4_VMC_REVISION:+GEANT4_VMC/$GEANT4_VMC_VERSION-$GEANT4_VMC_REVISION}                             \\
             ${VC_REVISION:+Vc/$VC_VERSION-$VC_REVISION}                                                             \\
             ${JALIEN_ROOT_REVISION:+JAliEn-ROOT/$JALIEN_ROOT_VERSION-$JALIEN_ROOT_REVISION}                         \\

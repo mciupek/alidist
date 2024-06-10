@@ -1,9 +1,8 @@
 package: AEGIS
 version: "%(tag_basename)s"
-tag: v1.5.2
+tag: v1.1
 requires:
   - ROOT
-  - VMC
   - pythia6
 build_requires:
   - CMake
@@ -15,26 +14,11 @@ prepend_path:
   ROOT_INCLUDE_PATH: "$AEGIS_ROOT/include"
 ---
 #!/bin/bash -e
-FVERSION=`gfortran --version | grep -i fortran | sed -e 's/.* //' | cut -d. -f1`
-SPECIALFFLAGS=""
-if [ $FVERSION -ge 10 ]; then
-   echo "Fortran version $FVERSION"
-   SPECIALFFLAGS=1
-fi
 cmake $SOURCEDIR -DCMAKE_INSTALL_PREFIX=$INSTALLROOT       \
                  ${CMAKE_GENERATOR:+-G "$CMAKE_GENERATOR"} \
                  -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE      \
-                 -DCMAKE_SKIP_RPATH=TRUE \
-		 ${SPECIALFFLAGS:+-DCMAKE_Fortran_FLAGS="-fallow-argument-mismatch"}
+                 -DCMAKE_SKIP_RPATH=TRUE
 cmake --build . -- ${JOBS:+-j$JOBS} install
-
-# Add an extra RPATH for the local libraries on macOS
-
-case ${ARCHITECTURE} in
-  osx*)
-    install_name_tool -add_rpath $INSTALLROOT/lib $INSTALLROOT/lib/libTEPEMGEN.dylib
-    ;;
-esac
 
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"

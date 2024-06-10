@@ -1,9 +1,9 @@
 package: GMP
-version: v6.2.1
-tag: v6.2.1
+version: v6.0.0
+tag: v6.0.0
 source: https://github.com/alisw/GMP.git
 requires:
-  - "GCC-Toolchain:(?!osx)"
+ - "GCC-Toolchain:(?!osx)"
 ---
 #!/bin/sh
 case $ARCHITECTURE in
@@ -12,24 +12,12 @@ case $ARCHITECTURE in
   *) MARCH= ;;
 esac
 
-case $ARCHITECTURE in
-  osx*)
-      $SOURCEDIR/configure --prefix=$INSTALLROOT \
-			   --enable-cxx \
-			   --disable-static \
-			   --enable-shared \
-			   ${MARCH:+--build=$MARCH --host=$MARCH} \
-			   --with-pic
-  ;;
-  *)
-      $SOURCEDIR/configure --prefix=$INSTALLROOT \
-			   --enable-cxx \
-			   --enable-static \
-			   --disable-shared \
-			   ${MARCH:+--build=$MARCH --host=$MARCH} \
-			   --with-pic
-  ;;
-esac
+$SOURCEDIR/configure --prefix=$INSTALLROOT \
+                     --enable-cxx \
+                     --enable-static \
+                     --disable-shared \
+                     ${MARCH:+--build=$MARCH --host=$MARCH} \
+                     --with-pic
 
 make ${JOBS+-j $JOBS}
 make install

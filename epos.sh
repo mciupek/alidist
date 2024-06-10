@@ -1,6 +1,6 @@
 package: EPOS
 version: "%(tag_basename)s"
-tag: "v3.111-alice5"
+tag: "v3.111-alice1"
 source: https://gitlab.cern.ch/ALICEPrivateExternals/epos.git
 requires:
   - ROOT
@@ -21,14 +21,7 @@ export OBJ=$EPO/Unu/Lib/
 rsync -a --exclude='**/.git' --delete ${SOURCEDIR}/ .
 mkdir $OBJ
 
-case $ARCHITECTURE in
-  osx*)
-      export LDFLAGS="-Wl,-undefined dynamic_lookup -L${MPFR_ROOT}/lib -L${GMP_ROOT}/lib -L${CGAL_ROOT}/lib"
-   ;;
-  *)
-      export LDFLAGS="-Wl,--no-as-needed -L${MPFR_ROOT}/lib -L${GMP_ROOT}/lib -L${CGAL_ROOT}/lib"
-   ;;
-esac
+export LDFLAGS="-Wl,--no-as-needed -L${MPFR_ROOT}/lib -L${GMP_ROOT}/lib -L${CGAL_ROOT}/lib"
 export LIBRARY_PATH="$LD_LIBRARY_PATH"
 make LFLAGS="$LDFLAGS"
 

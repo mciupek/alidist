@@ -3,7 +3,6 @@
 
 # Dataflow team
 alf*                @alisw/dataflow-experts
-lla*                @alisw/dataflow-experts
 coconut*            @alisw/dataflow-experts
 common-o2*          @alisw/dataflow-experts
 configuration*      @alisw/dataflow-experts
@@ -16,13 +15,13 @@ ppconsul*           @alisw/dataflow-experts
 qualitycontrol*     @alisw/dataflow-experts
 readout*            @alisw/dataflow-experts
 readoutcard*        @alisw/dataflow-experts
+node*               @alisw/dataflow-experts
+qcg*                @alisw/dataflow-experts
+ecsg*               @alisw/dataflow-experts
 librdkafka*         @alisw/dataflow-experts
 libinfologger*      @alisw/dataflow-experts
 dim*                @alisw/dataflow-experts
 defaults-o2-dataflow* @alisw/dataflow-experts
-tpcfecutils*        @alisw/dataflow-experts
-golang*             @alisw/dataflow-experts
-bookkeeping-api*    @alisw/dataflow-experts
 
 # PWGMM
 aligenerators*      @alisw/pagmc
@@ -53,17 +52,6 @@ vmc*                @alisw/simulation-experts
 vgm*                @alisw/simulation-experts
 vecgeom*            @alisw/simulation-experts
 mcsteplogger*       @alisw/simulation-experts
-fluka*              @alisw/simulation-experts
-evtgen*             @alisw/simulation-experts
-
-# General PDP stuff
-o2*                 @alisw/pdp-experts
-aliroot*            @alisw/pdp-experts
-aliphysics*         @alisw/pdp-experts
-acts*               @alisw/pdp-experts
-
-# PWG Related
-fastjet*            @alisw/pwgje
 
 # Muon Run3 Reconstruction Task Force
 alo*                @alisw/mrrtf
@@ -73,12 +61,3 @@ defaults-alo*       @alisw/mrrtf
 jdk*                @alisw/alien-experts
 jalien*             @alisw/alien-experts
 defaults-jalien*    @alisw/alien-experts
-xjalienfs*          @alisw/alien-experts
-
-# EPN
-datadistribution*   @alisw/epn-experts
-dds*                @alisw/epn-experts
-odc*                @alisw/epn-experts
-
-# ML
-mlmodels*           @fcatalan92

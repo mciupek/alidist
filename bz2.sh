@@ -1,9 +1,9 @@
 package: bz2
 version: "1.0.8"
 tag: 8ca1faa31f396d94ab927b257f3a05236c84e330
-source: https://github.com/alisw/bzip2
+source: https://sourceware.org/git/bzip2.git
 build_requires:
-  - "GCC-Toolchain:(?!osx)"
+ - "GCC-Toolchain:(?!osx)"
 prefer_system: "(?!slc5)"
 prefer_system_check: |
   printf "#include <bzlib.h>\n" | c++ -xc++ - -c -o /dev/null

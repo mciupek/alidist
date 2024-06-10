@@ -12,7 +12,7 @@ overrides:
   # Pinpoint AliRoot/AliPhysics
   AliRoot:
     version: "%(tag_basename)s"
-    tag: v5-09-57h
+    tag: v5-09-54a
     requires:
       - ROOT
       - DPMJET
@@ -23,16 +23,10 @@ overrides:
       - AliEn-ROOT-Legacy
   AliPhysics:
     version: "%(tag_basename)s"
-    tag: v5-09-57h-01
+    tag: v5-09-54a-01
   XRootD:
     tag: v3.3.6-alice2
     source: https://github.com/alisw/xrootd.git
-  OpenSSL:
-    version: v1.0.2o
-    tag: OpenSSL_1_0_2o
-  Alice-GRID-Utils:
-    version: "%(tag_basename)s"
-    tag: 0.0.6
   # Use ROOT 5
   ROOT:
     tag: v5-34-30-alice10
@@ -52,8 +46,8 @@ overrides:
 
   # Use VMC packages compatible with ROOT 5
   GEANT3:
-    version: "v2-7-p2"
-    tag: "v2-7-p2"
+    version: "v2-7-p1"
+    tag: "v2-7-p1"
   GEANT4_VMC:
     version: "v3-6-p6-inclxx-biasing-p2"
     tag: "v3-6-p6-inclxx-biasing-p2"
@@ -76,4 +70,5 @@ overrides:
   boost:
     requires:
       - "GCC-Toolchain:(?!osx)"
+
 ---

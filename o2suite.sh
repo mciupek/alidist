@@ -2,27 +2,24 @@ package: O2Suite
 version: "1.0.0"
 tag: "O2Suite-1.0.0"
 requires:
-  - coconut
-  - Control-Core
-  - Control-OCCPlugin
+  - Common-O2
+  - Monitoring
+  - Configuration
   - O2
-  - O2Physics
-  - "ReadoutCard:(slc*)"
+  - "GCC-Toolchain:(?!osx)"
+  - InfoLogger
+  - ReadoutCard
   - Readout
+  - qcg
   - QualityControl
   - "DataDistribution:(?!osx)"
-  - "ALF:(?!osx)"
-  - "mesos:(slc.*)"
-  - "TpcFecUtils:(?!osx)"
 valid_defaults:
   - o2
   - o2-dataflow
-  - o2-epn
   - o2-dev-fairroot
   - alo
   - o2-prod
   - o2-ninja
-  - ali
 ---
 #!/bin/bash -ex
 

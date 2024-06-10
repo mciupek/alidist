@@ -1,6 +1,6 @@
 package: InfoLogger
 version: "%(tag_basename)s"
-tag: v2.6.0
+tag: v1.3.9
 requires:
   - boost
   - "GCC-Toolchain:(?!osx)"
@@ -11,7 +11,7 @@ build_requires:
   - SWIG
 source: https://github.com/AliceO2Group/InfoLogger
 incremental_recipe: |
-  ninja ${JOBS:+-j$JOBS} install
+  make ${JOBS:+-j$JOBS} install
   mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles
 ---
 #!/bin/bash -ex
@@ -27,12 +27,11 @@ fi
 
 cmake $SOURCEDIR                                              \
       -DCMAKE_INSTALL_PREFIX=$INSTALLROOT                     \
-      -G Ninja                                                \
-      ${BOOST_REVISION:+-DBOOST_ROOT=$BOOST_ROOT}             \
+      ${BOOST_REVISION:+-DBOOST_ROOT=$BOOST_ROOT}              \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
 cp ${BUILDDIR}/compile_commands.json ${INSTALLROOT}
-ninja ${JOBS+-j $JOBS} install
+make ${JOBS+-j $JOBS} install
 
 #ModuleFile
 mkdir -p etc/modulefiles
@@ -54,6 +53,5 @@ set INFOLOGGER_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
 setenv INFOLOGGER_ROOT \$INFOLOGGER_ROOT
 prepend-path PATH \$INFOLOGGER_ROOT/bin
 prepend-path LD_LIBRARY_PATH \$INFOLOGGER_ROOT/lib
-prepend-path ROOT_INCLUDE_PATH \$INFOLOGGER_ROOT/include
 EoF
 mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles

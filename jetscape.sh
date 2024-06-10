@@ -1,7 +1,7 @@
 package: JETSCAPE
-version: "%(tag_basename)s"
-tag: "v3.1.1-alice5"
-source: https://github.com/alisw/JETSCAPE
+version: "v1-00-alice1"
+tag: "983ee2575b55bfb1f3593aab1bd6420342152c18"
+source: https://github.com/jetscape/jetscape
 requires:
   - boost
   - hdf5
@@ -26,14 +26,9 @@ esac
     -DCMAKE_CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
     -DCMAKE_INSTALL_PREFIX="$INSTALLROOT"        \
     -DPYTHIA8=$PYTHIA_ROOT                       \
-    -Dunittests=OFF                              \
     ${CXXSTD:+-DCMAKE_CXX_STANDARD=$CXXSTD}
 
 cmake --build . -- ${IGNORE_ERRORS:+-k} ${JOBS+-j $JOBS} install
-
-# must put some stuff by hands for the time being
-cp runJetscape $INSTALLROOT/bin/.
-cp -r $SOURCEDIR/config $INSTALLROOT/.
 
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"

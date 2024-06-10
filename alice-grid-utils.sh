@@ -1,13 +1,13 @@
 package: Alice-GRID-Utils
 version: "%(tag_basename)s"
-tag: "0.0.7"
-source: https://gitlab.cern.ch/jalien/alice-grid-utils.git
+tag: "0.0.6"
+source: https://gitlab.cern.ch/nhardi/alice-grid-utils.git
 ---
 #!/bin/bash -e
 
 DST="$INSTALLROOT/include"
 mkdir -p "$DST"
-cp -v "$SOURCEDIR"/*.h "$DST/"
+cp -v $SOURCEDIR/*.h "$DST/"
 
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"
@@ -21,4 +21,3 @@ proc ModulesHelp { } {
 }
 set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
 module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
-EoF

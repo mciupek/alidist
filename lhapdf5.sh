@@ -7,14 +7,12 @@ env:
 requires:
   - "GCC-Toolchain:(?!osx)"
   - Python-modules
-build_requires:
-  - curl
 ---
 #!/bin/bash -ex
 
 rsync -a --exclude '**/.git' $SOURCEDIR/ ./
 
-./configure --prefix=$INSTALLROOT FCFLAGS="$FCFLAGS -std=legacy"
+./configure --prefix=$INSTALLROOT
 
 make ${JOBS+-j $JOBS} all
 make install
@@ -26,7 +24,7 @@ pushd $INSTALLROOT/share/lhapdf
   for P in $PDFSETS; do
     PDFFILE=$(printf "%s.LHgrid" $P)
     PDFSOURCE=$(printf "%s/%s" $PDFREPO $PDFFILE)
-    curl -L $PDFSOURCE --output $PDFFILE
+    curl $PDFSOURCE --output $PDFFILE
     ls ${P}*
   done
 popd

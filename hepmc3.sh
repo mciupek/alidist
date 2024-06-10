@@ -1,22 +1,19 @@
 package: HepMC3
-version: "%(tag_basename)s"
-tag: 3.2.5
+version: "v3.0.0-git_%(short_hash)s"
+tag: d43693ce0e7731e9b787dbd6176cb6245fd770b3
 source: https://gitlab.cern.ch/hepmc/HepMC3.git
 requires:
   - GCC-Toolchain:(?!osx.*)
   - ROOT
 build_requires:
   - CMake
-prepend_path:
-  ROOT_INCLUDE_PATH: "$HEPMC3_ROOT/include"
 ---
 #!/bin/bash -e
 
 cmake  $SOURCEDIR                          \
        -DROOT_DIR=$ROOT_ROOT               \
        -DCMAKE_INSTALL_PREFIX=$INSTALLROOT \
-       -DCMAKE_INSTALL_LIBDIR=lib          \
-       -DHEPMC3_ENABLE_PYTHON=OFF
+       -DCMAKE_INSTALL_LIBDIR=lib
 
 make ${JOBS+-j $JOBS}
 make install

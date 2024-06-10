@@ -1,10 +1,8 @@
 package: localccdb
 version: "%(tag_basename)s"
-tag: "1.0.26"
+tag: "1.0.5"
 requires:
   - JDK
-build_requires:
-  - curl
 ---
 #!/bin/bash -e
 

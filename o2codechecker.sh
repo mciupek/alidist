@@ -1,8 +1,8 @@
 package: o2codechecker
-version: v15.0
-tag: v15.0
+version: "%(tag_basename)s"
+tag: master
 requires:
-  - Clang:(?!osx*)
+  - Clang
 build_requires:
   - CMake
 source: https://github.com/AliceO2Group/O2CodeChecker.git
@@ -11,13 +11,6 @@ incremental_recipe: |
   mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles
 ---
 #!/bin/bash -e
-case $ARCHITECTURE in
-    osx*)
-	CLANG_ROOT=`brew --prefix llvm`
-	;;
-    *)
-	;;
-esac
 cmake $SOURCEDIR -DCMAKE_INSTALL_PREFIX=$INSTALLROOT     \
                  -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE    \
                  -DClang_DIR=$CLANG_ROOT/lib/cmake/clang \

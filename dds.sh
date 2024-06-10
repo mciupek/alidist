@@ -1,13 +1,11 @@
 package: DDS
-version: "%(tag_basename)s"
-tag: "3.10"
+version: "3.2"
+tag: "3.2"
 source: https://github.com/FairRootGroup/DDS
 requires:
   - boost
-  - protobuf
 build_requires:
   - CMake
-  - alibuild-recipe-tools
 incremental_recipe: |
   case $ARCHITECTURE in
     osx*) ;;
@@ -18,19 +16,14 @@ incremental_recipe: |
 ---
 case $ARCHITECTURE in
   osx*)
-    [[ ! $BOOST_ROOT ]] && BOOST_ROOT=`brew --prefix boost`
-    [[ ! $PROTOBUF_ROOT ]] && PROTOBUF_ROOT=`brew --prefix protobuf`
-  ;;
+    [[ ! $BOOST_ROOT ]] && BOOST_ROOT=`brew --prefix boost` ;;
 esac
 
 [[ $GCC_TOOLCHAIN_ROOT ]] && export DDS_LD_LIBRARY_PATH="$GCC_TOOLCHAIN_ROOT/lib64"
 
 cmake $SOURCEDIR                                                         \
       -DCMAKE_INSTALL_PREFIX=$INSTALLROOT                                \
-      ${CMAKE_BUILD_TYPE:+-DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE}          \
       ${BOOST_ROOT:+-DBOOST_ROOT=$BOOST_ROOT -DBoost_NO_SYSTEM_PATHS=ON} \
-      -DProtobuf_ROOT=${PROTOBUF_ROOT}                                   \
-      -DCMAKE_INSTALL_LIBDIR=lib
 
 # Limit the number of build processes to avoid exahusting memory when building
 # on smaller machines.
@@ -46,13 +39,26 @@ esac
 
 make -j$JOBS install
 
-find $INSTALLROOT -path "*/lib/libboost_*" -delete
+find "$INSTALLROOT/lib" -name "libboost_*" -delete
 rm -f "$INSTALLROOT/LICENSE"
 
 # ModuleFile
 mkdir -p etc/modulefiles
-alibuild-generate-module --bin --lib > etc/modulefiles/$PKGNAME
-cat >> etc/modulefiles/$PKGNAME <<EoF
-setenv DDS_ROOT \$PKG_ROOT
+cat > etc/modulefiles/$PKGNAME <<EoF
+#%Module1.0
+proc ModulesHelp { } {
+  global version
+  puts stderr "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+}
+set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
+module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+# Dependencies
+module load BASE/1.0 ${BOOST_REVISION:+boost/$BOOST_VERSION-$BOOST_REVISION}                                 \\
+                     ${GCC_TOOLCHAIN_REVISION:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION}
+# Our environment
+set DDS_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
+setenv DDS_ROOT \$DDS_ROOT
+prepend-path PATH \$DDS_ROOT/bin
+prepend-path LD_LIBRARY_PATH \$DDS_ROOT/lib
 EoF
 mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles

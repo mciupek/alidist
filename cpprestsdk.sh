@@ -1,21 +1,19 @@
 package: cpprestsdk
-version: v2.10.18
-tag: 2.10.18
+version: "%(commit_hash)s"
+tag: master
 source: https://github.com/Microsoft/cpprestsdk
 requires:
-  - boost
-  - OpenSSL:(?!osx)
+- boost
+- OpenSSL:(?!osx)
 build_requires:
-  - CMake
+- CMake
 ---
 #!/bin/sh
 
-SONAME=so
 case $ARCHITECTURE in
-  osx*)
-    SONAME=dylib
+  osx*) 
     [[ ! $BOOST_ROOT ]] && BOOST_ROOT=$(brew --prefix boost)
-    [[ ! $OPENSSL_ROOT ]] && OPENSSL_ROOT=$(brew --prefix openssl@3)
+    [[ ! $OPENSSL_ROOT ]] && OPENSSL_ROOT=$(brew --prefix openssl)
   ;;
 esac
 
@@ -26,20 +24,28 @@ cmake "$SOURCEDIR/Release"                              \
       -DCMAKE_BUILD_TYPE=Debug                          \
       -DCMAKE_CXX_FLAGS=-Wno-error=conversion           \
       -DCPPREST_EXCLUDE_WEBSOCKETS=ON                   \
-      -DCMAKE_INSTALL_LIBDIR=lib                        \
-      ${BOOST_REVISION:+-DBOOST_ROOT=$BOOST_ROOT}       \
-      ${OPENSSL_ROOT:+-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT} \
-      ${OPENSSL_ROOT:+-DOPENSSL_INCLUDE_DIRS=$OPENSSL_ROOT/include} \
-      ${OPENSSL_ROOT:+-DOPENSSL_LIBRARIES=$OPENSSL_ROOT/lib/libssl.$SONAME;$OPENSSL_ROOT/lib/libcrypto.$SONAME}
+      ${BOOST_REVISION:+-DBOOST_ROOT=$BOOST_ROOT}        \
+      ${OPENSSL_ROOT:+-DOPENSSL_ROOT_DIR=$OPENSSL_ROOT}
 
 make ${JOBS:+-j $JOBS}
 make install
 
-#ModuleFile
-mkdir -p etc/modulefiles
-alibuild-generate-module --lib > etc/modulefiles/$PKGNAME
-cat >> etc/modulefiles/$PKGNAME <<EoF
+MODULEDIR="$INSTALLROOT/etc/modulefiles"
+MODULEFILE="$MODULEDIR/$PKGNAME"
+mkdir -p "$MODULEDIR"
+cat > "$MODULEFILE" <<EoF
+#%Module1.0
+proc ModulesHelp { } {
+  global version
+  puts stderr "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+}
+set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
+module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+# Dependencies
+module load BASE/1.0                                                          \\
+            ${BOOST_REVISION:+boost/$BOOST_VERSION-$BOOST_REVISION}            \\
+            ${OPENSSL_REVISION:+OpenSSL/$OPENSSL_VERSION-$OPENSSL_REVISION}
 # Our environment
 set CPPRESTSDK_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
+prepend-path LD_LIBRARY_PATH \$CPPRESTSDK_ROOT/lib64
 EoF
-mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles

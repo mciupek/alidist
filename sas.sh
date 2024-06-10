@@ -1,9 +1,9 @@
 package: SAS
 version: "0.1.3"
-tag: master
 source: https://github.com/ktf/SAS.git
+tag: master
 requires:
-  - Clang:(?!osx*)
+  - Clang
 ---
 #!/bin/sh
 cmake $SOURCEDIR \

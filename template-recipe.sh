@@ -1,8 +1,8 @@
-package: Template-Recipe    # e.g. MyGenerator
+package: MyGenerator
 version: "v1.0.0"
 source: https://github.com/alisw/MyGenerator
 requires:
-  - "GCC-Toolchain:(?!osx)"
+ - "GCC-Toolchain:(?!osx)"
 build_requires:
   - CMake
 ---

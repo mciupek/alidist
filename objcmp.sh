@@ -8,6 +8,7 @@ requires:
 build_requires:
   - CMake
 ---
+
 #!/bin/bash -e
 cmake $SOURCEDIR -DCMAKE_INSTALL_PREFIX=$INSTALLROOT   \
           ${CXXSTD:+-DCMAKE_CXX_STANDARD=$CXXSTD}      \

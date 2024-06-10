@@ -1,6 +1,6 @@
 package: KFParticle
-version: "%(tag_basename)s"
-tag: alice/v1.1-5
+version: "alice-v1.1-1"
+tag: "alice/v1.1-1"
 source: https://github.com/alisw/KFParticle
 requires:
   - ROOT

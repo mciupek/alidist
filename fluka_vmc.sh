@@ -1,33 +1,57 @@
 package: FLUKA_VMC
 version: "%(tag_basename)s"
-tag: "4-1.1-vmc4"
+tag: "2011-3.0-vmc2"
 source: https://gitlab.cern.ch/ALICEPrivateExternals/FLUKA_VMC.git
 requires:
   - "GCC-Toolchain:(?!osx)"
   - ROOT
-  - VMC
 build_requires:
-  - CMake
   - FLUKA
 env:
   FLUVMC: "$FLUKA_VMC_ROOT"
   FLUPRO: "$FLUKA_VMC_ROOT"
-prepend_path:
-  LD_LIBRARY_PATH: "$FLUKA_VMC_ROOT/lib64"
-  ROOT_INCLUDE_PATH: "$FLUKA_VMC_ROOT/include/TFluka"
 ---
-cmake $SOURCEDIR -DCMAKE_INSTALL_PREFIX=$INSTALLROOT      \
-                 -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE     \
-                 -DCMAKE_INSTALL_LIBDIR="lib"             \
-                 ${CXXSTD:+-DCMAKE_CXX_STANDARD=$CXXSTD}  \
-                 -DCMAKE_SKIP_RPATH=TRUE                  \
-                 -DFLUKA_ROOT=$FLUKA_ROOT                 \
-                 -DFLUKAWITHDPMJET=TRUE
-make ${JOBS:+-j $JOBS} install
+#!/bin/bash -e
 
-[[ ! -d $INSTALLROOT/lib64 ]] && ln -sf lib $INSTALLROOT/lib64
+rsync -a --exclude='**/.git' --delete --delete-excluded $SOURCEDIR/ .
+pushd source
+  ROOT_ETCDIR=$(root-config --etcdir)/vmc
+  rsync -av "$ROOT_ETCDIR"/Makefile.* .
+  for MK in Makefile.*; do
+    grep -v libgfortranbegin -- "$MK" > "$MK".0
+    mv "$MK".0 "$MK"
+  done
+  make ${JOBS:+-j$JOBS} SHELL='sh -x'
+popd
 
+# Installation
+mkdir -p "$INSTALLROOT/lib"
+cp -v lib/tgt_*/libflukavmc.* tmp/tgt_*/*.pcm "$INSTALLROOT/lib"
+cp -v README "$INSTALLROOT/"
+for DIR in examples input; do
+  [[ -d $DIR ]] || continue
+  rsync -av $DIR "$INSTALLROOT"
+done
 rsync -av "$FLUKA_ROOT"/data "$INSTALLROOT/"
+
+# Test load library
+cat > loadFluka.C <<\EOF
+#include <iostream>
+#include <TSystem.h>
+int loadFluka() {
+  const char *libs[] = { "libVMC", "libPhysics", "libEG", "libflukavmc" };
+  for (auto &lib : libs) {
+    if (gSystem->Load(lib) < 0) {
+      std::cout << "Cannot load library " << lib << std::endl;
+      return 1;
+    }
+  };
+  return 0;
+}
+EOF
+export LD_LIBRARY_PATH=$INSTALLROOT/lib:$LD_LIBRARY_PATH
+export ROOT_HIST=0
+root -l -b -q -n loadFluka.C++
 
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"
@@ -42,7 +66,7 @@ proc ModulesHelp { } {
 set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
 module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
 # Dependencies
-module load BASE/1.0 ${ROOT_REVISION:+ROOT/$ROOT_VERSION-$ROOT_REVISION} ${VMC_REVISION:+VMC/$VMC_VERSION-$VMC_REVISION} ${GCC_TOOLCHAIN_REVISION:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION}
+module load BASE/1.0 ${ROOT_REVISION:+ROOT/$ROOT_VERSION-$ROOT_REVISION} ${GCC_TOOLCHAIN_ROOT:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION}
 # Our environment
 set FLUKA_VMC_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
 setenv FLUKA_VMC_ROOT \$FLUKA_VMC_ROOT
@@ -50,5 +74,4 @@ setenv FLUVMC \$::env(BASEDIR)/$PKGNAME/\$version
 setenv FLUPRO \$::env(BASEDIR)/$PKGNAME/\$version
 setenv FLUKADATA \$::env(BASEDIR)/$PKGNAME/\$version/data
 prepend-path LD_LIBRARY_PATH \$FLUKA_VMC_ROOT/lib
-prepend-path ROOT_INCLUDE_PATH \$FLUKA_VMC_ROOT/include/TFluka
 EoF

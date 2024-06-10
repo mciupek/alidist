@@ -1,27 +1,36 @@
 package: fmt
 version: "%(tag_basename)s"
-tag: 10.1.1
+tag: 7.0.1
 source: https://github.com/fmtlib/fmt
 requires:
   - "GCC-Toolchain:(?!osx)"
 build_requires:
   - CMake
-  - alibuild-recipe-tools
-  - ninja
 prepend_path:
   ROOT_INCLUDE_PATH: "$FMT_ROOT/include"
 ---
 #!/bin/bash -e
-cmake $SOURCEDIR -GNinja -DCMAKE_INSTALL_PREFIX=$INSTALLROOT -DFMT_TEST=OFF -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS=ON
+cmake $SOURCEDIR -DCMAKE_INSTALL_PREFIX=$INSTALLROOT -DFMT_TEST=OFF -DBUILD_SHARED_LIBS=TRUE -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE
 
-cmake --build . --target install
+make ${JOBS+-j $JOBS}
+make install
 
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"
 MODULEFILE="$MODULEDIR/$PKGNAME"
 mkdir -p "$MODULEDIR"
-
-alibuild-generate-module --lib > $MODULEFILE
-cat << EOF >> $MODULEFILE
-prepend-path ROOT_INCLUDE_PATH \$PKG_ROOT/include
-EOF
+cat > "$MODULEFILE" <<EoF
+#%Module1.0
+proc ModulesHelp { } {
+  global version
+  puts stderr "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+}
+set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
+module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+# Dependencies
+module load BASE/1.0 ${GCC_TOOLCHAIN_REVISION:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION}
+# Our environment
+set FMT_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
+prepend-path ROOT_INCLUDE_PATH \$FMT_ROOT/include
+prepend-path LD_LIBRARY_PATH \$FMT_ROOT/lib64
+EoF

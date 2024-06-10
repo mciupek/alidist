@@ -1,6 +1,6 @@
 package: boost
-version: v1.83.0-alice2
-tag: v1.83.0-alice2
+version: "%(tag_basename)s"
+tag: v1.72.0-alice1
 source: https://github.com/alisw/boost.git
 requires:
   - "GCC-Toolchain:(?!osx)"
@@ -10,10 +10,11 @@ requires:
 build_requires:
   - lzma
   - bz2
-  - alibuild-recipe-tools
 prepend_path:
   ROOT_INCLUDE_PATH: "$BOOST_ROOT/include"
 ---
+#!/bin/bash -e
+
 BOOST_PYTHON=
 BOOST_CXXFLAGS=
 if [[ $ARCHITECTURE != osx* && $PYTHON_MODULES_VERSION ]]; then
@@ -54,7 +55,7 @@ fi
 
 TMPB2=$BUILDDIR/tmp-boost-build
 case $ARCHITECTURE in
-  osx*) TOOLSET=clang ;;
+  osx*) TOOLSET=clang-darwin ;;
   *) TOOLSET=gcc ;;
 esac
 
@@ -84,8 +85,10 @@ b2 -q                                            \
    --without-graph                               \
    --without-graph_parallel                      \
    --without-locale                              \
+   --without-math                                \
    --without-mpi                                 \
    ${BOOST_NO_PYTHON:+--without-python}          \
+   --without-wave                                \
    --debug-configuration                         \
    -sNO_ZSTD=1                                   \
    ${BZ2_ROOT:+-sBZIP2_INCLUDE="$BZ2_ROOT/include"}  \
@@ -117,10 +120,21 @@ fi
 # Modulefile
 MODULEDIR="$INSTALLROOT/etc/modulefiles"
 MODULEFILE="$MODULEDIR/$PKGNAME"
-
-mkdir -p etc/modulefiles
-alibuild-generate-module --lib > etc/modulefiles/$PKGNAME
-cat << EOF >> etc/modulefiles/$PKGNAME
-prepend-path ROOT_INCLUDE_PATH \$PKG_ROOT/include
-EOF
-mkdir -p $INSTALLROOT/etc/modulefiles && rsync -a --delete etc/modulefiles/ $INSTALLROOT/etc/modulefiles
+mkdir -p "$MODULEDIR"
+cat > "$MODULEFILE" <<EoF
+#%Module1.0
+proc ModulesHelp { } {
+  global version
+  puts stderr "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+}
+set version $PKGVERSION-@@PKGREVISION@$PKGHASH@@
+module-whatis "ALICE Modulefile for $PKGNAME $PKGVERSION-@@PKGREVISION@$PKGHASH@@"
+# Dependencies
+module load BASE/1.0 ${GCC_TOOLCHAIN_REVISION:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION} \\
+                     ${PYTHON_REVISION:+Python/$PYTHON_VERSION-$PYTHON_REVISION}                             \\
+                     ${ZLIB_REVISION:+zlib/$ZLIB_VERSION-$ZLIB_REVISION}
+# Our environment
+set BOOST_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
+prepend-path LD_LIBRARY_PATH \$BOOST_ROOT/lib
+prepend-path ROOT_INCLUDE_PATH \$BOOST_ROOT/include
+EoF

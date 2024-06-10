@@ -1,11 +1,11 @@
 package: GEANT-VMC-test
 version: "%(year)s%(month)s%(day)s"
-force_rebuild: true
+force_rebuild: 1
 requires:
   - GEANT4_VMC
   - geant3_vmc-examples
 ---
-#!/bin/bash -e
+#!/bin/sh
 
 g3vmc_testE01
 g3vmc_testE02

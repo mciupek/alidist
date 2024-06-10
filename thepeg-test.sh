@@ -1,10 +1,10 @@
 package: ThePEG-test
 version: v1
-force_rebuild: true
+force_rebuild: 1
 requires:
   - ThePEG
 ---
-#!/bin/bash -e
+#!/bin/bash
 cat > DIPSYpp_HepMC.in <<\EOF
 read Tune27.in
 cd /DIPSY

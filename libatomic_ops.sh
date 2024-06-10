@@ -1,10 +1,9 @@
 package: libatomic_ops
 version: libatomic_ops-7_4_2
-tag: master
 source: https://github.com/ivmai/libatomic_ops/
+tag: master
 build_requires:
-  - "autotools:(slc6|slc7)"
-  - GCC-Toolchain
+  - autotools:(slc[56].*|ubt.*)
 ---
 #!/bin/sh
 rsync -a $SOURCEDIR/ ./

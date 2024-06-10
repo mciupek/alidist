@@ -1,18 +1,16 @@
-# Online Device Control
+#Online Device Control
 package: ODC
 version: "%(tag_basename)s"
-tag: "0.83.0"
+tag: 0.2
 source: https://github.com/FairRootGroup/ODC.git
 requires:
-  - boost
-  - protobuf
-  - DDS
-  - FairLogger
-  - FairMQ
-  - grpc
-  - libInfoLogger
+- boost
+- protobuf
+- DDS
+- FairLogger
+- FairMQ
+- grpc
 build_requires:
-  - flatbuffers
   - CMake
   - GCC-Toolchain:(?!osx.*)
 ---
@@ -24,8 +22,6 @@ case $ARCHITECTURE in
     [[ ! $PROTOBUF_ROOT ]] && PROTOBUF_ROOT=`brew --prefix protobuf`
     [[ ! $GSL_ROOT ]] && GSL_ROOT=`brew --prefix gsl`
     [[ ! $GRPC_ROOT ]] && GRPC_ROOT=`brew --prefix grpc`
-    # grpc needs OpenSSL and doesn't find it by default.
-    [[ ! $OPENSSL_ROOT ]] && OPENSSL_ROOT=$(brew --prefix openssl@3)
 
     SONAME=dylib
   ;;
@@ -43,11 +39,7 @@ cmake  $SOURCEDIR                                                               
        ${CXXSTD:+-DCMAKE_CXX_STANDARD=$CXXSTD}                                               \
        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON                                                    \
        -DCMAKE_INSTALL_PREFIX=$INSTALLROOT                                                   \
-       -DgRPC_ROOT=$GRPC_ROOT                                                                \
-       ${OPENSSL_ROOT:+-DOPENSSL_ROOT_DIR="$OPENSSL_ROOT"}                                   \
-       ${OPENSSL_ROOT:+-DOPENSSL_INCLUDE_DIRS=$OPENSSL_ROOT/include}                         \
-       ${OPENSSL_ROOT:+-DOPENSSL_LIBRARIES=$OPENSSL_ROOT/lib/libssl.$SONAME;$OPENSSL_ROOT/lib/libcrypto.$SONAME} \
-       -DBUILD_INFOLOGGER=ON
+       -DgRPC_ROOT=$GRPC_ROOT
 
 
 make ${JOBS+-j $JOBS}
@@ -76,7 +68,7 @@ module load BASE/1.0                                                            
             ${DDS_REVISION:+DDS/$DDS_VERSION-$DDS_REVISION}                                         \\
             ${GRPC_REVISION:+grpc/$GRPC_VERSION-$GRPC_REVISION}                                     \\
             ${GCC_TOOLCHAIN_REVISION:+GCC-Toolchain/$GCC_TOOLCHAIN_VERSION-$GCC_TOOLCHAIN_REVISION}
-
+            
 # Our environment
 set ODC_ROOT \$::env(BASEDIR)/$PKGNAME/\$version
 prepend-path PATH \$ODC_ROOT/bin

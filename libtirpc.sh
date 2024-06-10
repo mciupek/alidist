@@ -1,9 +1,9 @@
 package: libtirpc
 version: "%(tag_basename)s"
 tag: "libtirpc-1-1-4"
-source: https://github.com/alisw/libtirpc
+source: git://git.linux-nfs.org/projects/steved/libtirpc.git
 build_requires:
-  - "autotools:(slc6|slc7)"
+  - autotools
   - "GCC-Toolchain:(?!osx)"
 ---
 #!/bin/bash -e
