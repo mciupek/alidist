@@ -22,5 +22,5 @@ overrides:
   AliPhysics:
     version: "%(tag_basename)s"
     source: https://github.com/mciupek/AliPhysics
-    tag: ZDCFlow
+    tag: ZDCFlow_old
 ---
